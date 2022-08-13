@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerMove : MonoBehaviour
+public class PlayerMoveCC : MonoBehaviour
 {
     [SerializeField]
     [Range(1f, 10f)]
@@ -15,13 +15,16 @@ public class PlayerMove : MonoBehaviour
     [SerializeField] Animator playerAnimator;
 
     private Vector3 playerDirection;
-
+    /*
     private bool canJump = true;
     public bool CanJump { get => canJump; set => canJump = value; }
+    */
+
+    private CharacterController playerCC;
 
     void Start()
     {
-
+        playerCC = GetComponent<CharacterController>();
     }
 
     // Update is called once per frame
@@ -45,21 +48,31 @@ public class PlayerMove : MonoBehaviour
             if (!IsAnimation("IDLE")) playerAnimator.SetTrigger("IDLE");
         }
         //Limpiamos la dirección de movimiento en cada frame.
-        playerDirection = Vector3.zero;
+        //playerDirection = Vector3.zero;
         //Elegimos una dirección en función de la tecla que se mantiene presionada.
-        if (Input.GetKey(KeyCode.W)) playerDirection += Vector3.forward;
-        if (Input.GetKey(KeyCode.S)) playerDirection += Vector3.back;
-        if (Input.GetKey(KeyCode.D)) playerDirection += Vector3.right;
-        if (Input.GetKey(KeyCode.A)) playerDirection += Vector3.left;
+        if (Input.GetKey(KeyCode.W)) MovePlayer(Vector3.forward);
+        if (Input.GetKey(KeyCode.S)) MovePlayer(Vector3.back);
+        if (Input.GetKey(KeyCode.D)) MovePlayer(Vector3.right);
+        if (Input.GetKey(KeyCode.A)) MovePlayer(Vector3.left);
         //Nos movemos solo si hay una dirección diferente que vector zero.
-        if (Input.GetKey(KeyCode.Space) && canJump)
+        if (playerCC.isGrounded)
         {
-            canJump = false;
-            Debug.Log("JUMP");
-            playerDirection += Vector3.up * 3f;
+            playerDirection.y = 0f;
         }
 
-        if(!canJump){ playerDirection += Vector3.down; } 
+        if (Input.GetKey(KeyCode.Space))
+        {
+            //   canJump = false;
+            Debug.Log("JUMP");
+            playerCC.Move(Vector3.up * 10f * Time.deltaTime);
+        }
+
+        //if(!canJump){ playerDirection += Vector3.down; } 
+
+
+        //APLICAR GRAVEDAD
+        playerDirection.y += -9.81f * Time.deltaTime;
+        playerCC.Move(playerDirection * Time.deltaTime);
 
         if (playerDirection != Vector3.zero) MovePlayer(playerDirection);
 
@@ -68,12 +81,13 @@ public class PlayerMove : MonoBehaviour
     private bool IsAnimation(string animName)
     {
         return playerAnimator.GetCurrentAnimatorStateInfo(0).IsName(animName);
+        
     }
 
 
     private void MovePlayer(Vector3 direction)
     {
-        transform.Translate(direction * speed * Time.deltaTime);
+        playerCC.Move(transform.TransformDirection(direction) * speed * Time.deltaTime);
     }
 
     public void RotatePlayer()
@@ -90,4 +104,3 @@ public class PlayerMove : MonoBehaviour
         transform.rotation = Quaternion.Lerp(transform.rotation, newRotation, 2.5f * Time.deltaTime);
     }
 }
-

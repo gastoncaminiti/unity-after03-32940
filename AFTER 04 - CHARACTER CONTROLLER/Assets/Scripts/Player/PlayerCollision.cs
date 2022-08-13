@@ -5,10 +5,12 @@ using UnityEngine;
 public class PlayerCollision : MonoBehaviour
 {
     private PlayerData playerData;
+    private PlayerMove playerMove;
 
     private void Start()
     {
         playerData = GetComponent<PlayerData>();
+        playerMove = GetComponent<PlayerMove>();
     }
 
     private void OnCollisionEnter(Collision other)
@@ -31,6 +33,11 @@ public class PlayerCollision : MonoBehaviour
                 Debug.Log("GAME OVER");
             }
         }
+
+        if (other.gameObject.CompareTag("Floor"))
+        {
+           playerMove.CanJump = true;
+        }
     }
 
     private void OnCollisionExit(Collision other)
@@ -45,7 +52,13 @@ public class PlayerCollision : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-
+        // Debug.Log("ENTRANDO EN COLISION CON ->" + other.gameObject.name);
+        if (other.gameObject.CompareTag("Powerups"))
+        {
+            Destroy(other.gameObject);
+            //sumar vida
+            playerData.Healing(other.gameObject.GetComponent<Pumpkin>().HealPoints);
+        }
     }
 
     private void OnTriggerExit(Collider other)
@@ -56,5 +69,9 @@ public class PlayerCollision : MonoBehaviour
     private void OnTriggerStay(Collider other)
     {
 
+    }
+
+    private void OnControllerColliderHit(ControllerColliderHit hit) {
+        Debug.Log("ENTRANDO EN COLISION CON ->" + hit.gameObject.name);
     }
 }
